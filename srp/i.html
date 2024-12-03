@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    body { background: #0a0f2d; color: white; font-family: monospace; }
+    .container { max-width: 800px; margin: auto; padding: 20px; }
+    .upload-zone { border: 2px dashed #00f5ff; padding: 20px; text-align: center; }
+    .report-card { background: rgba(255,255,255,0.05); margin: 10px 0; padding: 15px; }
+    .btn { background: transparent; border: 2px solid #00f5ff; color: #00f5ff; padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>student GradeAssigner</p>
+    <div class="upload-zone">
+      <input type="file" id="fileInput">
+      <button onclick="FileInputHandler.handleFileSelection()">Process</button>
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <script>
+    // Single responsibility: Handle file input events
+    class FileInputHandler {
+      static handleFileSelection() {
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) {
+          MessageDisplay.show('Select file');
+          return;
+        }
+        CSVReader.read(file);
+      }
+    }
+
+    // Single responsibility: Display messages
+    class MessageDisplay {
+      static show(message) {
+        alert(message);
+      }
+    }
+
+    // Single responsibility: Read CSV file
+    class CSVReader {
+      static read(file) {
+        Papa.parse(file, {
+          header: true,
+          complete: result => DataValidator.validate(result.data)
+        });
+      }
+    }
+
+    // Single responsibility: Validate data
+    class DataValidator {
+      static validate(data) {
+        const validData = data.filter(item => item.name && item.marks);
+        MarksConverter.convert(validData);
+      }
+    }
+
+    // Single responsibility: Convert marks to number
+    class MarksConverter {
+      static convert(data) {
+        const converted = data.map(item => ({
+          name: item.name,
+          marks: Number(item.marks)
+        }));
+        GradeAssigner.assign(converted);
+      }
+    }
+
+    // Single responsibility: Assign grades
+    class GradeAssigner {
+      static assign(data) {
+        const graded = data.map(item => ({
+          ...item,
+          grade: this.getGrade(item.marks)
+        }));
+        HTMLGenerator.generate(graded);
+      }
+
+      static getGrade(marks) {
+        if (marks > 90) return 'A';
+        if (marks > 75) return 'B';
+        if (marks > 50) return 'C';
+        return 'F';
+      }
+    }
+
+    // Single responsibility: Generate HTML
+    class HTMLGenerator {
+      static generate(data) {
+        const html = data.map(item => `
+          <div class="report-card">
+            <h3>${item.name}</h3>
+            <p>Marks: ${item.marks}</p>
+            <p>Grade: ${item.grade}</p>
+          </div>
+        `).join('');
+        DOMUpdater.update(html);
+      }
+    }
+
+    // Single responsibility: Update DOM
+    class DOMUpdater {
+      static update(html) {
+        document.getElementById('output').innerHTML = html;
+      }
+    }
+  </script>
+</body>
+</html>

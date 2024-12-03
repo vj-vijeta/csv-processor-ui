@@ -1,0 +1,4 @@
+name,email,role,course,quiz,assignment
+Alice,alice@school.com,student,Math,Math Quiz,Math Homework
+Bob,bob@school.com,teacher,Math,,Math Homework
+Charlie,charlie@school.com,admin,,,

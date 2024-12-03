@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Academy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-blue-900 min-h-screen">
+  <div class="flex">
+    <!-- Collapsible Sidebar -->
+    <div id="sidebar" class="transform -translate-x-full transition-transform duration-300 fixed z-10">
+      <div class="w-64 bg-slate-800/50 backdrop-blur-sm min-h-screen p-6 border-r border-slate-700">
+        <h2 class="text-2xl font-bold text-blue-400 mb-6">Cosmic Interfaces</h2>
+        
+        <div class="space-y-6">
+          <div class="p-4 rounded-lg bg-blue-900/30 border border-blue-700/50">
+            <h3 class="text-blue-300 font-semibold mb-2">ISpaceExplorer</h3>
+            <ul class="text-sm text-blue-200/70 space-y-2">
+              <li>• explore()</li>
+              <li>• conductExperiment()</li>
+              <li>• studyPhenomena()</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-lg bg-purple-900/30 border border-purple-700/50">
+            <h3 class="text-purple-300 font-semibold mb-2">IStarGuide</h3>
+            <ul class="text-sm text-purple-200/70 space-y-2">
+              <li>• mapStarSystems()</li>
+              <li>• navigatePaths()</li>
+              <li>• guideTravelers()</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-lg bg-indigo-900/30 border border-indigo-700/50">
+            <h3 class="text-indigo-300 font-semibold mb-2">ICosmicKeeper</h3>
+            <ul class="text-sm text-indigo-200/70 space-y-2">
+              <li>• maintainBalance()</li>
+              <li>• overseeRealms()</li>
+              <li>• guardGates()</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle Button -->
+    <button onclick="toggleSidebar()" class="fixed top-4 left-4 z-20 bg-blue-600 p-2 rounded-lg hover:bg-blue-500 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+      </svg>
+    </button>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8">
+      <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+          Cosmic Academy
+        </h1>
+        <p class="text-blue-300">Interface Segregation in Action</p>
+      </div>
+      
+      <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-slate-700">
+        <div class="flex justify-center space-x-6 mb-12">
+          <label class="relative group">
+            <span class="bg-blue-600 group-hover:bg-blue-500 px-6 py-3 rounded-xl cursor-pointer transition-all duration-300 inline-block">
+              Import Cosmic Data
+              <input type="file" id="csvFile" accept=".csv" class="hidden">
+            </span>
+          </label>
+          <button onclick="processCSV()" class="bg-purple-600 hover:bg-purple-500 px-6 py-3 rounded-xl transition-all duration-300">
+            Initialize Portal
+          </button>
+        </div>
+
+        <div id="reports" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Interface Segregation
+    class ISpaceExplorer {
+      explore() { throw new Error('Not implemented'); }
+      conductExperiment() { throw new Error('Not implemented'); }
+      studyPhenomena() { throw new Error('Not implemented'); }
+    }
+
+    class IStarGuide {
+      mapStarSystems() { throw new Error('Not implemented'); }
+      navigatePaths() { throw new Error('Not implemented'); }
+      guideTravelers() { throw new Error('Not implemented'); }
+    }
+
+    class ICosmicKeeper {
+      maintainBalance() { throw new Error('Not implemented'); }
+      overseeRealms() { throw new Error('Not implemented'); }
+      guardGates() { throw new Error('Not implemented'); }
+    }
+
+    class CosmicEntity {
+      constructor(name, constellation) {
+        this.name = name;
+        this.constellation = constellation;
+      }
+    }
+
+    class Explorer extends CosmicEntity {
+      explore() { return `${this.name} is exploring new galaxies`; }
+      conductExperiment() { return `${this.name} is conducting cosmic experiments`; }
+      studyPhenomena() { return `${this.name} is studying celestial phenomena`; }
+    }
+
+    class Guide extends CosmicEntity {
+      mapStarSystems() { return `${this.name} is mapping star systems`; }
+      navigatePaths() { return `${this.name} is navigating stellar paths`; }
+      guideTravelers() { return `${this.name} is guiding cosmic travelers`; }
+    }
+
+    class Keeper extends CosmicEntity {
+      maintainBalance() { return `${this.name} is maintaining cosmic harmony`; }
+      overseeRealms() { return `${this.name} is overseeing the realms`; }
+      guardGates() { return `${this.name} is guarding dimensional gates`; }
+    }
+
+    function processCSV() {
+      const file = document.getElementById('csvFile').files[0];
+      if (!file) {
+        alert('Please upload cosmic data');
+        return;
+      }
+
+      Papa.parse(file, {
+        header: true,
+        complete: function(results) {
+          displayUsers(results.data);
+        }
+      });
+    }
+
+    function displayUsers(users) {
+      const container = document.getElementById('reports');
+      container.innerHTML = '';
+      
+      users.forEach(userData => {
+        let entity;
+        let actions = [];
+        let roleClass = '';
+        
+        switch (userData.role.toLowerCase()) {
+          case 'student':
+            entity = new Explorer(userData.name, userData.email);
+            actions = [
+              entity.explore(),
+              entity.conductExperiment(),
+              entity.studyPhenomena()
+            ];
+            roleClass = 'from-blue-400 to-blue-600';
+            break;
+          case 'teacher':
+            entity = new Guide(userData.name, userData.email);
+            actions = [
+              entity.mapStarSystems(),
+              entity.navigatePaths(),
+              entity.guideTravelers()
+            ];
+            roleClass = 'from-purple-400 to-purple-600';
+            break;
+          case 'admin':
+            entity = new Keeper(userData.name, userData.email);
+            actions = [
+              entity.maintainBalance(),
+              entity.overseeRealms(),
+              entity.guardGates()
+            ];
+            roleClass = 'from-indigo-400 to-indigo-600';
+            break;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 transform transition-all duration-300 hover:scale-105';
+        card.innerHTML = `
+          <div class="mb-4">
+            <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${roleClass}">
+              ${entity.name}
+            </h3>
+            <p class="text-slate-400">${entity.constellation}</p>
+          </div>
+          <div class="space-y-3">
+            ${actions.map(action => `
+              <p class="text-blue-300 text-sm flex items-center">
+                <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                ${action}
+              </p>
+            `).join('')}
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('-translate-x-full');
+    }
+  </script>
+</body>
+</html>

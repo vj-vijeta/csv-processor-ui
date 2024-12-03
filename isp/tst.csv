@@ -1,0 +1,4 @@
+name,email,role,grade,subject
+Alice,alice@school.com,student,A,
+Bob,bob@school.com,teacher,,Math
+Charlie,charlie@school.com,admin,,, 

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    body {
+      background: #0a001a;
+      min-height: 100vh;
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      color: white;
+    }
+    
+    .portal {
+      position: relative;
+      max-width: 800px;
+      margin: 40px auto;
+      text-align: center;
+    }
+    
+    .title {
+      font-size: 48px;
+      background: linear-gradient(to right, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 2s infinite;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin: 30px 0;
+    }
+    
+    .btn {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(168,85,247,0.5);
+      color: #d8b4fe;
+      padding: 12px 24px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn:hover {
+      background: rgba(168,85,247,0.2);
+      border-color: rgba(168,85,247,0.8);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    
+    .card {
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(168,85,247,0.2);
+      padding: 20px;
+      border-radius: 12px;
+      transition: all 0.5s;
+    }
+    
+    .status {
+      margin-top: 20px;
+      color: #d8b4fe;
+    }
+  </style>
+</head>
+<body>
+  <div class="portal">
+    <h1 class="title">Magic Portal</h1>
+    
+    <div class="controls">
+      <label class="btn">
+        Open Portal
+        <input type="file" id="csvFile" accept=".csv" style="display:none">
+      </label>
+      <button class="btn" id="castBtn" disabled>Cast Spell</button>
+      <button class="btn" id="clearBtn" disabled>Clear Portal</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+    <div id="grid" class="grid"></div>
+  </div>
+
+  <script>
+    // Base classes for extensibility
+    class DataProcessor {
+      process(data) { throw new Error('Not implemented'); }
+    }
+
+    class DisplayStrategy {
+      createCard(item) { throw new Error('Not implemented'); }
+    }
+
+    // Concrete implementations
+    class CSVProcessor extends DataProcessor {
+      process(file) {
+        return new Promise((resolve) => {
+          Papa.parse(file, {
+            header: true,
+            complete: (results) => resolve(results.data)
+          });
+        });
+      }
+    }
+
+    class MagicCardDisplay extends DisplayStrategy {
+      createCard(item) {
+        return `
+          <div class="card">
+            <h3>${item.name || 'Unknown'}</h3>
+            <p>Magic flows through ${item.type || 'unknown magic'}</p>
+          </div>
+        `;
+      }
+    }
+
+    // UI Manager (follows OCP by accepting any DataProcessor and DisplayStrategy)
+    class PortalManager {
+      constructor(processor, display) {
+        this.processor = processor;
+        this.display = display;
+        this.data = null;
+        this.setupUI();
+      }
+
+      setupUI() {
+        const fileInput = document.getElementById('csvFile');
+        const castBtn = document.getElementById('castBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
+
+        fileInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          status.textContent = 'Processing...';
+          this.data = await this.processor.process(file);
+          status.textContent = 'Portal ready!';
+          castBtn.disabled = false;
+          clearBtn.disabled = false;
+        });
+
+        castBtn.addEventListener('click', () => this.displayData());
+        clearBtn.addEventListener('click', () => this.clearPortal());
+      }
+
+      displayData() {
+        if (!this.data) return;
+        const grid = document.getElementById('grid');
+        grid.innerHTML = this.data.map(item => 
+          this.display.createCard(item)
+        ).join('');
+      }
+
+      clearPortal() {
+        document.getElementById('grid').innerHTML = '';
+        document.getElementById('status').textContent = '';
+        document.getElementById('csvFile').value = '';
+        document.getElementById('castBtn').disabled = true;
+        document.getElementById('clearBtn').disabled = true;
+        this.data = null;
+      }
+    }
+
+    // Initialize
+    const portalManager = new PortalManager(
+      new CSVProcessor(),
+      new MagicCardDisplay()
+    );
+  </script>
+</body>
+</html>

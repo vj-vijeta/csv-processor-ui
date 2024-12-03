@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> DIP Implementation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-4xl mx-auto">
+      <h1 class="text-4xl font-bold text-indigo-900 mb-8 text-center">User Management</h1>
+      
+      <div class="bg-indigo-50 p-6 rounded-lg mb-8">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <label class="relative">
+            <span class="bg-indigo-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-indigo-700 transition inline-block">
+              Upload CSV
+              <input type="file" id="csvFile" accept=".csv" class="hidden">
+            </span>
+          </label>
+          <button onclick="processCSV()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition">
+            Process Users
+          </button>
+        </div>
+      </div>
+
+      <div id="reports" class="grid gap-6"></div>
+    </div>
+  </div>
+
+  <script>
+    // Abstract Service Interface
+    class UserService {
+      performAction(user) {
+        throw new Error("Method must be implemented");
+      }
+    }
+
+    // Concrete Service Implementation
+    class StudentService extends UserService {
+      performAction(user) {
+        return `${user.name} is studying ${user.course}`;
+      }
+    }
+
+    class TeacherService extends UserService {
+      performAction(user) {
+        return `${user.name} is teaching ${user.course}`;
+      }
+    }
+
+    // User class depending on abstraction
+    class User {
+      constructor(name, email, role, course, service) {
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.course = course;
+        this.service = service;
+      }
+
+      doAction() {
+        return this.service.performAction(this);
+      }
+    }
+
+    function processCSV() {
+      const file = document.getElementById('csvFile').files[0];
+      if (!file) {
+        alert('Please upload a CSV file');
+        return;
+      }
+
+      Papa.parse(file, {
+        header: true,
+        complete: function(results) {
+          displayUsers(results.data);
+        }
+      });
+    }
+
+    function displayUsers(users) {
+      const container = document.getElementById('reports');
+      container.innerHTML = '';
+      
+      users.forEach(userData => {
+        const service = userData.role.toLowerCase() === 'student' 
+          ? new StudentService() 
+          : new TeacherService();
+          
+        const user = new User(
+          userData.name,
+          userData.email,
+          userData.role,
+          userData.course,
+          service
+        );
+
+        const action = user.doAction();
+        
+        const card = document.createElement('div');
+        card.className = `bg-white p-6 rounded-lg shadow-lg border-l-4 ${
+          user.role.toLowerCase() === 'student' ? 'border-blue-500' : 'border-green-500'
+        }`;
+        
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">${user.name}</h3>
+            <span class="px-3 py-1 rounded-full text-sm ${
+              user.role.toLowerCase() === 'student' 
+                ? 'bg-blue-100 text-blue-800' 
+                : 'bg-green-100 text-green-800'
+            }">${user.role}</span>
+          </div>
+          <div class="text-gray-600 space-y-2">
+            <p><span class="font-medium">Email:</span> ${user.email}</p>
+            <p><span class="font-medium">Course:</span> ${user.course}</p>
+            <p class="text-indigo-600 italic">${action}</p>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

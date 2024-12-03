@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic Academy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-yellow-400">
+        Magic Academy
+      </h1>
+      <p class="text-pink-300">Where Every Spell Is Substitutable</p>
+    </div>
+
+    <div class="bg-gray-900/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-pink-500/20">
+      <div class="flex justify-center gap-6 mb-12">
+        <label class="relative">
+          <span class="bg-pink-600 hover:bg-pink-500 px-6 py-3 rounded-xl cursor-pointer transition-all duration-300 inline-block text-white">
+            Import Spellcasters
+            <input type="file" id="csvFile" accept=".csv" class="hidden">
+          </span>
+        </label>
+        <button onclick="processCSV()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-6 py-3 rounded-xl transition-all duration-300">
+          Cast Enchantment
+        </button>
+      </div>
+
+      <div id="reports" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+    </div>
+  </div>
+
+  <script>
+    // Base Spellcaster - Defines the contract
+    class Spellcaster {
+      constructor(name, element) {
+        this.name = name;
+        this.element = element;
+      }
+
+      castSpell() {
+        return { power: 1, element: this.element };
+      }
+
+      summonFamiliar() {
+        return ['basic familiar'];
+      }
+
+      getSpellPower() {
+        return 10;
+      }
+    }
+
+    // Apprentice maintains LSP by extending but not breaking base behavior
+    class Apprentice extends Spellcaster {
+      castSpell() {
+        const baseSpell = super.castSpell();
+        return { ...baseSpell, power: baseSpell.power * 1.2 };
+      }
+
+      summonFamiliar() {
+        return [...super.summonFamiliar(), 'novice companion'];
+      }
+
+      getSpellPower() {
+        return super.getSpellPower() * 1.5;
+      }
+    }
+
+    // Mage extends functionality while preserving base contract
+    class Mage extends Spellcaster {
+      castSpell() {
+        const baseSpell = super.castSpell();
+        return { ...baseSpell, power: baseSpell.power * 2 };
+      }
+
+      summonFamiliar() {
+        return [...super.summonFamiliar(), 'elemental spirit', 'mystic ally'];
+      }
+
+      getSpellPower() {
+        return super.getSpellPower() * 3;
+      }
+    }
+
+    // Archmage maintains substitutability while adding power
+    class Archmage extends Spellcaster {
+      castSpell() {
+        const baseSpell = super.castSpell();
+        return { ...baseSpell, power: baseSpell.power * 4 };
+      }
+
+      summonFamiliar() {
+        return [...super.summonFamiliar(), 'dragon familiar', 'phoenix companion'];
+      }
+
+      getSpellPower() {
+        return super.getSpellPower() * 5;
+      }
+    }
+
+    function processCSV() {
+      const file = document.getElementById('csvFile').files[0];
+      if (!file) {
+        alert('Please upload your spellcaster scroll');
+        return;
+      }
+
+      Papa.parse(file, {
+        header: true,
+        complete: function(results) {
+          displayMages(results.data);
+        }
+      });
+    }
+
+    function displayMages(mages) {
+      const container = document.getElementById('reports');
+      container.innerHTML = '';
+      
+      mages.forEach(mageData => {
+        let spellcaster;
+        let roleClass = '';
+        
+        switch (mageData.role.toLowerCase()) {
+          case 'apprentice':
+            spellcaster = new Apprentice(mageData.name, mageData.element);
+            roleClass = 'from-blue-400 to-blue-600';
+            break;
+          case 'mage':
+            spellcaster = new Mage(mageData.name, mageData.element);
+            roleClass = 'from-purple-400 to-purple-600';
+            break;
+          case 'archmage':
+            spellcaster = new Archmage(mageData.name, mageData.element);
+            roleClass = 'from-pink-400 to-pink-600';
+            break;
+        }
+
+        const spellPower = spellcaster.getSpellPower();
+        const spellResult = spellcaster.castSpell();
+        const familiars = spellcaster.summonFamiliar();
+
+        const card = document.createElement('div');
+        card.className = 'bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-pink-500/20 transform transition-all duration-300 hover:scale-105';
+        card.innerHTML = `
+          <div class="mb-4">
+            <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${roleClass}">
+              ${spellcaster.name}
+            </h3>
+            <p class="text-gray-400">${spellcaster.element} Element</p>
+          </div>
+          <div class="space-y-3">
+            <p class="text-pink-300 text-sm">
+              Spell Power: ${spellPower}
+            </p>
+            <p class="text-yellow-300 text-sm">
+              Cast Power: ${spellResult.power}
+            </p>
+            <p class="text-blue-300 text-sm">
+              Familiars: ${familiars.join(', ')}
+            </p>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
